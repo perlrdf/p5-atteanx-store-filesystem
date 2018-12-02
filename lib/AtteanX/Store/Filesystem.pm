@@ -1,11 +1,39 @@
+package AtteanX::Store::Filesystem;
+
 use 5.010001;
 use strict;
 use warnings;
 
-package AtteanX::Store::Filesystem;
-
 our $AUTHORITY = 'cpan:KJETILK';
 our $VERSION   = '0.001';
+
+use Moo;
+use Type::Tiny::Role;
+use Types::URI -all;
+use Types::Standard qw(InstanceOf);
+use Attean;
+use Attean::RDF;
+
+use Data::Dumper;
+use Carp;
+
+with 'Attean::API::TripleStore';
+with 'MooX::Log::Any';
+
+has 'local_graph_dir' => (is => 'ro',
+								  required => 1,
+								  isa => 'Str');
+
+has 'nonlocal_graph_dir' => (is => 'ro',
+									  isa => 'Str');
+
+has 'local_graph_hashnames' => (is => 'ro',
+										  isa => 'Str',
+										  default => 'local-graph-name');
+
+
+
+
 
 1;
 
