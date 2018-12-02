@@ -7,7 +7,8 @@ our $VERSION   = '0.001';
 
 
 use Moo::Role;
-use Temp::File;
+use File::Temp;
+use File::Spec;
 
 sub create_store {
 	my $self = shift;
@@ -16,8 +17,9 @@ sub create_store {
 	my $local_dir = File::Temp->newdir();
 	my $nonlocal_dir = File::Temp->newdir();
 	my $store = Attean->get_store('Filesystem')->new(
-																	 local_graph_dir = $local_dir,
-																	 nonlocal_graph_dir = $nonlocal_dir
+																	 local_base => 'http://localhost',
+																	 local_graph_dir => $local_dir->dirname,
+																	 nonlocal_graph_dir => $nonlocal_dir->dirname
 																	);
 	return $store;
 }

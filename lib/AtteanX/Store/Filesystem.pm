@@ -10,29 +10,48 @@ our $VERSION   = '0.001';
 use Moo;
 use Type::Tiny::Role;
 use Types::URI -all;
-use Types::Standard qw(InstanceOf);
+use Types::Standard qw(ConsumerOf InstanceOf Str);
 use Attean;
 use Attean::RDF;
+use Scalar::Util qw(blessed);
 
 use Data::Dumper;
 use Carp;
 
-with 'Attean::API::TripleStore';
+with 'Attean::API::QuadStore';
 with 'MooX::Log::Any';
+
+has 'local_base' => (is => 'ro',
+							isa => ConsumerOf['Attean::API::IRI'],
+							coerce => sub { blessed($_[0]) ? Attean::IRI->new($_[0]->as_string) : Attean::IRI->new($_[0]) });
 
 has 'local_graph_dir' => (is => 'ro',
 								  required => 1,
-								  isa => 'Str');
+								  isa => Str);
 
 has 'nonlocal_graph_dir' => (is => 'ro',
-									  isa => 'Str');
+									  isa => Str);
 
 has 'local_graph_hashnames' => (is => 'ro',
-										  isa => 'Str',
+										  isa => Str,
 										  default => 'local-graph-name');
 
 
 
+sub uri_to_filename {
+  my ($self, $uri) = @_;
+  unless ($uri->path =~ m/\.\w+?$/) {
+	 # TODO: Support file extensions properly
+	 $uri = URI->new($uri->as_string . '$.ttl');
+  }
+  my $rel = $uri->rel($self->local_base->value);
+  my $graph_dir = ($uri->eq($rel)) ? $self->nonlocal_graph_dir : $self->local_graph_dir;
+  return $graph_dir . $rel->as_string;
+}
+
+sub get_quads {
+  return 1;
+}
 
 
 1;
