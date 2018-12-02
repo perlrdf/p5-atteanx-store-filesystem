@@ -1,0 +1,25 @@
+# This file contains general metadata about the project.
+
+@prefix : <http://usefulinc.com/ns/doap#>.
+@prefix dc:   <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#>.
+
+`AtteanX-Store-Filesystem`
+   :programming-language "Perl" ;
+   :shortdesc            "Generic Filesystem-based Quad Store for Attean";
+   :homepage             <https://metacpan.org/release/AtteanX-Store-Filesystem>;
+   :download-page        <https://metacpan.org/release/AtteanX-Store-Filesystem>;
+   :bug-database         <https://github.com/kjetilk/p5-atteanx-store-filesystem/issues>;
+   :repository           [ a :GitRepository;
+                           :browse <https://github.com/kjetilk/p5-atteanx-store-filesystem>;
+                           prov:has_provenance <http://git2prov.org/git2prov?giturl=https%3A%2F%2Fgithub.com%2Fkjetilk%2Fp5-atteanx-store-filesystem&serialization=PROV-O#>
+                         ];
+#   :support-forum        <irc://irc.perl.org/#perlrdf> ;
+   :created              2018-12-02;
+   :license              <http://dev.perl.org/licenses/>;
+   :maintainer           cpan:KJETILK;
+   :developer            cpan:KJETILK.
+
+<http://dev.perl.org/licenses/>
+	dc:title  "the same terms as the perl 5 programming language system itself".
+
