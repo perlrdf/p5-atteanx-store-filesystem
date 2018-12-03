@@ -97,9 +97,11 @@ sub cost_for_plan {
 	my $self	= shift;
 	my $plan	= shift;
 	if ($plan->isa('Attean::Plan::Quad')) {
-	  # TODO if plan has graph as variable, penalize heavily
-	  # TODO otherwise, grab size of file
-		return;
+	  my $cost = 1; 	  # TODO grab size of file system
+	  if ($plan->graph->does('Attean::API::Variable')) {
+		 $cost *= 100; 		 # TODO if plan has graph as variable, penalize heavily
+	  }
+	  return $cost;
 	}
 	return;
 }
