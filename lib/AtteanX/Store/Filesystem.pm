@@ -21,6 +21,7 @@ use Data::Dumper;
 use Carp;
 
 with 'Attean::API::QuadStore';
+with 'Attean::API::CostPlanner';
 with 'MooX::Log::Any';
 
 has 'local_base' => (is => 'ro',
@@ -62,7 +63,16 @@ sub filename_to_uri {
 }
 
 sub get_quads {
-  return 1
+  my $self = shift;
+  my ($s, $p, $o, $g) = @_;
+  my $parser = Attean->get_parser('Turtle')->new();
+  if (blessed($g) && $g->does('Attean::API::IRI')) {
+	 open(my $fh, '<' . $self->uri_to_filename($g)) || die "Couldn't open file"; 
+	 my $iter = $parser->parse_iter_from_io($fh, $self->local_base);
+	 return $iter->as_quads($g);
+  } else {
+	 # OMG, we have to traverse all files...
+  }
 }
 
 sub get_graphs {
@@ -81,6 +91,17 @@ sub get_graphs {
 		 $self->local_graph_dir);
 	 # TODO: non-local graphs
   return Attean::ListIterator->new( values => \@graphs, item_type => 'Attean::API::Term' );
+}
+
+sub cost_for_plan {
+	my $self	= shift;
+	my $plan	= shift;
+	if ($plan->isa('Attean::Plan::Quad')) {
+	  # TODO if plan has graph as variable, penalize heavily
+	  # TODO otherwise, grab size of file
+		return;
+	}
+	return;
 }
 
 
