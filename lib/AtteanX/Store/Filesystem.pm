@@ -66,13 +66,14 @@ sub get_quads {
   my $self = shift;
   my ($s, $p, $o, $g) = @_;
   my $parser = Attean->get_parser('Turtle')->new();
+  my $iter
   if (blessed($g) && $g->does('Attean::API::IRI')) {
 	 open(my $fh, '<' . $self->uri_to_filename($g)) || die "Couldn't open file"; 
-	 my $iter = $parser->parse_iter_from_io($fh, $self->local_base);
-	 return $iter->as_quads($g);
+	 $iter = $parser->parse_iter_from_io($fh, $self->local_base)->as_quad;
   } else {
-	 # OMG, we have to traverse all files...
+	 # TODO: OMG, we have to traverse all files...
   }
+  # TODO: Filter other terms
 }
 
 sub get_graphs {
