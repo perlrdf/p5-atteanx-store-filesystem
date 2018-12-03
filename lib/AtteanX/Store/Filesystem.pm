@@ -14,6 +14,8 @@ use Types::Standard qw(ConsumerOf InstanceOf Str);
 use Attean;
 use Attean::RDF;
 use Scalar::Util qw(blessed);
+use Path::Tiny;
+use File::Find;
 
 use Data::Dumper;
 use Carp;
@@ -22,17 +24,18 @@ with 'Attean::API::QuadStore';
 with 'MooX::Log::Any';
 
 has 'local_base' => (is => 'ro',
-							isa => ConsumerOf['Attean::API::IRI'],
-							coerce => sub { blessed($_[0]) ? Attean::IRI->new($_[0]->as_string) : Attean::IRI->new($_[0]) });
+							isa => Uri,
+							coerce => 1
+							);
 
 has 'local_graph_dir' => (is => 'ro',
 								  required => 1,
-								  isa => Str);
+								  isa => Str); # TODO: make these Path::Tiny
 
 has 'nonlocal_graph_dir' => (is => 'ro',
 									  isa => Str);
 
-has 'local_graph_hashnames' => (is => 'ro',
+has 'local_graph_hashname' => (is => 'ro',
 										  isa => Str,
 										  default => 'local-graph-name');
 
@@ -44,13 +47,40 @@ sub uri_to_filename {
 	 # TODO: Support file extensions properly
 	 $uri = URI->new($uri->as_string . '$.ttl');
   }
-  my $rel = $uri->rel($self->local_base->value);
+  my $rel = $uri->rel($self->local_base);
   my $graph_dir = ($uri->eq($rel)) ? $self->nonlocal_graph_dir : $self->local_graph_dir;
   return $graph_dir . $rel->as_string;
 }
 
+sub filename_to_uri {
+  my ($self, $filename) = @_;
+  my ($graph) = $filename =~ s/^$self->local_graph_dir/$self->local_base->as_string/;
+  if ($filename =~ m/^$self->nonlocal_graph_dir(.*)/) {
+	 $graph = $1;
+  }
+  return URI->new($graph)
+}
+
 sub get_quads {
-  return 1;
+  return 1
+}
+
+sub get_graphs {
+  my $self = shift;
+  my @graphs;
+  find(sub {
+			if ($File::Find::name =~ m/^(.*?)\$?\.ttl$/) {
+			  my $file = $1;
+			  my $dir = $self->local_graph_dir;
+			  my $base = $self->local_base->as_string;
+			  $file =~ s/^$dir/$base/;
+			  $file .= '#' . $self->local_graph_hashname;
+			  push(@graphs, Attean::IRI->new($file))
+			}
+		 },
+		 $self->local_graph_dir);
+	 # TODO: non-local graphs
+  return Attean::ListIterator->new( values => \@graphs, item_type => 'Attean::API::Term' );
 }
 
 
