@@ -16,6 +16,7 @@ use Attean::RDF;
 use Scalar::Util qw(blessed);
 use Path::Tiny;
 use File::Find;
+use File::stat;
 
 use Data::Dumper;
 use Carp;
@@ -34,7 +35,8 @@ has 'local_graph_dir' => (is => 'ro',
 								  isa => Str); # TODO: make these Path::Tiny
 
 has 'nonlocal_graph_dir' => (is => 'ro',
-									  isa => Str);
+									  isa => Str,
+									  predicate => 1);
 
 has 'local_graph_hashname' => (is => 'ro',
 										  isa => Str,
@@ -66,10 +68,10 @@ sub get_quads {
   my $self = shift;
   my ($s, $p, $o, $g) = @_;
   my $parser = Attean->get_parser('Turtle')->new();
-  my $iter
+  my $iter;
   if (blessed($g) && $g->does('Attean::API::IRI')) {
 	 open(my $fh, '<' . $self->uri_to_filename($g)) || die "Couldn't open file"; 
-	 $iter = $parser->parse_iter_from_io($fh, $self->local_base)->as_quad;
+	 $iter = $parser->parse_iter_from_io($fh, $self->local_base)->as_quad($g);
   } else {
 	 # TODO: OMG, we have to traverse all files...
   }
@@ -97,14 +99,25 @@ sub get_graphs {
 sub cost_for_plan {
 	my $self	= shift;
 	my $plan	= shift;
+	# TODO: could be improved with more filesystem checks
 	if ($plan->isa('Attean::Plan::Quad')) {
-	  my $cost = 1; 	  # TODO grab size of file system
+	  my $cost = 1;
 	  if ($plan->graph->does('Attean::API::Variable')) {
-		 $cost *= 100; 		 # TODO if plan has graph as variable, penalize heavily
+		 my $lstat = stat($self->local_graph_dir) || die "Couldn't find local graph dir in filesystem";
+		 my $links = $lstat->nlink;
+		 if ($self->has_nonlocal_graph_dir) {
+			my $nstat = stat($self->nonlocal_graph_dir) || die "Couldn't find nonlocal graph dir in filesystem";
+			$links += $nstat->nlink;
+		 }
+		 $cost *= $links * 10;
 	  }
 	  return $cost;
 	}
 	return;
+}
+
+sub plans_for_algebra {
+  return;
 }
 
 
