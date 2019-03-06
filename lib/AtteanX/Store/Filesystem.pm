@@ -16,8 +16,7 @@ use Attean::RDF;
 use Scalar::Util qw(blessed);
 use Types::Path::Tiny qw/AbsDir/;
 use Path::Tiny;
-use File::Find;
-use File::stat;
+use Path::Iterator::Rule;
 
 use Data::Dumper;
 use Carp;
@@ -28,6 +27,7 @@ with 'MooX::Log::Any';
 
 has 'graph_dir' => (is => 'ro',
 						  required => 1,
+						  coerce => 1,
 						  isa => AbsDir);
 
 # TODO: This is for corner case where URI aliasing would occur without it
@@ -89,17 +89,13 @@ sub get_quads {
 sub get_graphs {
   my $self = shift;
   my @graphs;
-  find(sub {
-			if ($File::Find::name =~ m/^(.*?)\$?\.ttl$/) {
-			  my $file = $1;
-			  my $dir = $self->graph_dir;
-			  my $base = $self->local_base->as_string;
-			  $file =~ s/^$dir/$base/;
-			  push(@graphs, Attean::IRI->new($file))
-			}
-		 },
-		 $self->local_graph_dir);
-	 # TODO: non-local graphs
+  my $rule = Path::Iterator::Rule->new;
+  $rule->file->nonempty;
+  
+  my $iter = $rule->iter($self->graph_dir);
+  while (my $path = $iter->()) { # TODO: Make this a CodeIterator
+	 push(@graphs, Attean::IRI->new($self->filename_to_uri($path)->as_string))
+  }
   return Attean::ListIterator->new( values => \@graphs, item_type => 'Attean::API::Term' );
 }
 
