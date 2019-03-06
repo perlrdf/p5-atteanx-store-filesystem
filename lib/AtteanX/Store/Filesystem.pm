@@ -14,7 +14,8 @@ use Types::Standard qw(ConsumerOf InstanceOf Str);
 use Attean;
 use Attean::RDF;
 use Scalar::Util qw(blessed);
-use Types::Path::Tiny qw/Path AbsDir/;;
+use Types::Path::Tiny qw/AbsDir/;
+use Path::Tiny;
 use File::Find;
 use File::stat;
 
@@ -44,8 +45,9 @@ sub uri_to_filename {
 	 # TODO: Support URIs ending with /
 	 $uri = URI->new($uri->as_string . '$.ttl');
   }
-  
-  return $self->graph_dir . $rel->as_string;
+  my $querypart = ($uri->query) ? '/\?' . $uri->query : '';
+  my $localpath = path($uri->scheme . '/' . $uri->authority . $uri->path . $querypart);
+  return $localpath->absolute($self->graph_dir);
 }
 
 sub filename_to_uri {

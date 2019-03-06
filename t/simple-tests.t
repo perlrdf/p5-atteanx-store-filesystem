@@ -11,8 +11,7 @@ use_ok('AtteanX::Store::Filesystem');
 
 my $local_dir = $Bin . '/simple-test-data/';
 my $store = AtteanX::Store::Filesystem->new(
-														  local_base => 'http://localhost/',
-														  local_graph_dir => $local_dir,
+														  graph_dir => $local_dir,
 														 );
 
 isa_ok($store, 'AtteanX::Store::Filesystem');
