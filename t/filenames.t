@@ -20,24 +20,28 @@ subtest 'Simple case with empty suffix' => sub {
   my $luri = URI->new('http://localhost/foo/bar');
   my $file = $local_dir->stringify . '/http/localhost/foo/bar$.ttl';
   is($store->uri_to_filename($luri), $file, 'Basic filename map');
+  is($store->filename_to_uri($file)->as_string, $luri->as_string, 'Roundtrips OK');
 };
 
 subtest 'Simple case with other suffix' => sub {
   my $luri = URI->new('http://localhost/foo/bar.rdf');
   my $file = $local_dir->stringify . '/http/localhost/foo/bar.rdf';
   is($store->uri_to_filename($luri), $file, 'Basic filename map');
+  is($store->filename_to_uri($file)->as_string, $luri->as_string, 'Roundtrips OK');
 };
 
 subtest 'Port number case with empty suffix' => sub {
   my $luri = URI->new('http://localhost:8443/foo/bar');
   my $file = $local_dir->stringify . '/http/localhost:8443/foo/bar$.ttl';
   is($store->uri_to_filename($luri), $file, 'Basic filename map');
+  is($store->filename_to_uri($file)->as_string, $luri->as_string, 'Roundtrips OK');
 };
 
 subtest 'User in authority case with empty suffix' => sub {
   my $luri = URI->new('http://dahut@localhost/foo/bar');
   my $file = $local_dir->stringify . '/http/dahut@localhost/foo/bar$.ttl';
   is($store->uri_to_filename($luri), $file, 'Basic filename map');
+  is($store->filename_to_uri($file)->as_string, $luri->as_string, 'Roundtrips OK');
 };
 
 # TODO:
