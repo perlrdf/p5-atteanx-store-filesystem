@@ -36,4 +36,9 @@ subtest 'User in authority case with empty suffix' => sub {
   is($store->uri_to_filename($luri), $local_dir->stringify . '/http/dahut@localhost/foo/bar$.ttl', 'Basic filename map');
 };
 
+# TODO:
+#subtest 'Just a URN test' => sub {
+#	 my $luri = URI->new('urn:foobar:test');
+#	 is($store->uri_to_filename($luri), $local_dir->stringify . '/urn/foobar/test$.ttl', 'Basic filename map');
+#};
 done_testing;
