@@ -22,7 +22,7 @@ isa_ok($iter, 'Attean::ListIterator');
 
 ok(my $uri = $iter->next);
 
-is($uri->value, 'http://localhost/foo/bar#local-graph-name');
+is($uri->value, 'http://localhost/foo/bar');
 
 warn Dumper($store->get_graphs);
 
