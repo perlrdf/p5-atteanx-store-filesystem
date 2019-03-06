@@ -51,12 +51,24 @@ sub uri_to_filename {
 }
 
 sub filename_to_uri {
-  my ($self, $filename) = @_;
-  my ($graph) = $filename =~ s/^$self->local_graph_dir/$self->local_base->as_string/;
-  if ($filename =~ m/^$self->nonlocal_graph_dir(.*)/) {
-	 $graph = $1;
+  my $self = shift;
+  my $filename = shift;
+  unless (blessed($filename) && $filename->isa('Path::Tiny')) {
+	 $filename = path($filename);
   }
-  return URI->new($graph)
+  my $rel = $filename->relative($self->graph_dir);
+  my @parts = split('/', $rel->stringify); # TODO, really no method to do this?
+  my $graph = URI->new;
+  $graph->scheme(shift @parts);
+  $graph->authority(shift @parts);
+  my $last = pop @parts;
+  if ($last =~ m/(.*)\$\.ttl/) {
+	 push(@parts, $1); # This will add the public part of the filename to the URL
+  } else {
+	 push(@parts, $last); # Otherwise, just add the same thing
+  }
+  $graph->path(join('/', @parts));
+  return $graph;
 }
 
 sub get_quads {
