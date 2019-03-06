@@ -67,6 +67,7 @@ sub filename_to_uri {
   } else {
 	 push(@parts, $last); # Otherwise, just add the same thing
   }
+  # TODO: Support query part
   $graph->path(join('/', @parts));
   return $graph;
 }
