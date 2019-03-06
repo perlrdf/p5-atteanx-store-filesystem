@@ -14,7 +14,7 @@ use Types::Standard qw(ConsumerOf InstanceOf Str);
 use Attean;
 use Attean::RDF;
 use Scalar::Util qw(blessed);
-use Path::Tiny;
+use Types::Path::Tiny qw/Path AbsDir/;;
 use File::Find;
 use File::stat;
 
@@ -25,20 +25,12 @@ with 'Attean::API::QuadStore';
 with 'Attean::API::CostPlanner';
 with 'MooX::Log::Any';
 
-has 'local_base' => (is => 'ro',
-							isa => Uri,
-							coerce => 1
-							);
+has 'graph_dir' => (is => 'ro',
+						  required => 1,
+						  isa => AbsDir);
 
-has 'local_graph_dir' => (is => 'ro',
-								  required => 1,
-								  isa => Str); # TODO: make these Path::Tiny
-
-has 'nonlocal_graph_dir' => (is => 'ro',
-									  isa => Str,
-									  predicate => 1);
-
-has 'local_graph_hashname' => (is => 'ro',
+# TODO: This is for corner case where URI aliasing would occur without it
+has 'local_graph_hashname' => (is => 'ro', 
 										  isa => Str,
 										  default => 'local-graph-name');
 
@@ -48,11 +40,12 @@ sub uri_to_filename {
   my ($self, $uri) = @_;
   unless ($uri->path =~ m/\.\w+?$/) {
 	 # TODO: Support file extensions properly
+	 # TODO: Support e.g. .acl
+	 # TODO: Support URIs ending with /
 	 $uri = URI->new($uri->as_string . '$.ttl');
   }
-  my $rel = $uri->rel($self->local_base);
-  my $graph_dir = ($uri->eq($rel)) ? $self->nonlocal_graph_dir : $self->local_graph_dir;
-  return $graph_dir . $rel->as_string;
+  
+  return $self->graph_dir . $rel->as_string;
 }
 
 sub filename_to_uri {
@@ -84,10 +77,9 @@ sub get_graphs {
   find(sub {
 			if ($File::Find::name =~ m/^(.*?)\$?\.ttl$/) {
 			  my $file = $1;
-			  my $dir = $self->local_graph_dir;
+			  my $dir = $self->graph_dir;
 			  my $base = $self->local_base->as_string;
 			  $file =~ s/^$dir/$base/;
-			  $file .= '#' . $self->local_graph_hashname;
 			  push(@graphs, Attean::IRI->new($file))
 			}
 		 },
