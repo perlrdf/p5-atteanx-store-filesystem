@@ -26,4 +26,14 @@ subtest 'Simple case with other suffix' => sub {
   is($store->uri_to_filename($luri), $local_dir->stringify . '/http/localhost/foo/bar.rdf', 'Basic filename map');
 };
 
+subtest 'Port number case with empty suffix' => sub {
+  my $luri = URI->new('http://localhost:8443/foo/bar');
+  is($store->uri_to_filename($luri), $local_dir->stringify . '/http/localhost:8443/foo/bar$.ttl', 'Basic filename map');
+};
+
+subtest 'User in authority case with empty suffix' => sub {
+  my $luri = URI->new('http://dahut@localhost/foo/bar');
+  is($store->uri_to_filename($luri), $local_dir->stringify . '/http/dahut@localhost/foo/bar$.ttl', 'Basic filename map');
+};
+
 done_testing;
