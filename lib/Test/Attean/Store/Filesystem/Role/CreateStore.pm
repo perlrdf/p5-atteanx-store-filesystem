@@ -13,9 +13,26 @@ sub create_store {
 	my $self = shift;
 	my %args = @_;
 	my $quads = $args{quads} // [];
+	my $tmpdir = path('/tmp/test/')->absolute; #tempdir;
 	my $store = Attean->get_store('Filesystem')->new(
-																	 graph_dir => Path::Tiny->tempdir,
+																	 graph_dir => $tmpdir
 																	);
+	my $ser = Attean->get_serializer('Turtle')->new;
+	my $tmpstore = Attean->get_store('Memory')->new;
+	$tmpstore->add_iter(Attean::ListIterator->new(values => $quads, item_type => 'Attean::API::Quad'));
+	my $tmpmodel = Attean::QuadModel->new( store => $tmpstore );
+	my $g_iter = $tmpmodel->get_graphs;
+	while (my $g = $g_iter->next) {
+	  my $q_iter = $tmpmodel->get_quads(undef, undef, undef, $g);
+	  my @triples;
+	  while (my $quad = $q_iter->next) {
+		 push(@triples, $quad->as_triple);
+	  }
+	  my $t_iter = Attean::ListIterator->new(values => \@triples, item_type => 'Attean::API::Triple');
+	  my $file = $store->uri_to_filename($g);
+	  $file->parent->mkpath;
+	  $ser->serialize_iter_to_io($file->openw_utf8, $t_iter)
+	}
 	return $store;
 }
 
