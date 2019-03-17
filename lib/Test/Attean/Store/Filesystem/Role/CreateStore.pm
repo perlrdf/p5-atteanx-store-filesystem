@@ -7,16 +7,14 @@ our $VERSION   = '0.001';
 
 
 use Moo::Role;
-use File::Temp;
-use File::Spec;
+use Path::Tiny;
 
 sub create_store {
 	my $self = shift;
 	my %args = @_;
 	my $quads = $args{quads} // [];
-	my $local_dir = File::Temp->newdir();
 	my $store = Attean->get_store('Filesystem')->new(
-																	 graph_dir => $local_dir->dirname,
+																	 graph_dir => Path::Tiny->tempdir,
 																	);
 	return $store;
 }

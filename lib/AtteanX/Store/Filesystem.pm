@@ -48,7 +48,9 @@ sub uri_to_filename {
 	 $uri = URI->new($uri->as_string . '$.ttl');
   }
   my $querypart = ($uri->query) ? '/\?' . $uri->query : '';
-  my $localpath = path($uri->scheme . '/' . $uri->authority . $uri->path . $querypart);
+  my $schemepart = $uri->scheme || 'noscheme'; # TODO: improve these names
+  my $authoritypart = $uri->authority || 'noauthority/';
+  my $localpath = path($schemepart . '/' . $authoritypart . $uri->path . $querypart);
   return $localpath->absolute($self->graph_dir);
 }
 
@@ -61,8 +63,10 @@ sub filename_to_uri {
   my $rel = $filename->relative($self->graph_dir);
   my @parts = split('/', $rel->stringify); # TODO, really no method to do this?
   my $graph = URI->new;
-  $graph->scheme(shift @parts);
-  $graph->authority(shift @parts);
+  my $schemepart = shift @parts;
+  $graph->scheme($schemepart) unless ($schemepart eq 'noscheme');
+  my $authoritypart = shift @parts;
+  $graph->authority($authoritypart) unless ($authoritypart eq 'noauthority');
   my $last = pop @parts;
   if ($last =~ m/(.*)\$\.ttl/) {
 	 push(@parts, $1); # This will add the public part of the filename to the URL
@@ -105,7 +109,7 @@ sub get_quads {
 	 my $next = $rule->iter($self->graph_dir);
 	 while ( defined( my $file = $next->() ) ) {
 		my $this_graph = $self->filename_to_uri($file);
-		$iter->push($parser->parse_iter_from_io($file, $this_graph)->as_quad($this_graph));
+		$iter->push($parser->parse_iter_from_io($file->openr, $this_graph)->as_quad($this_graph));
 	 }
   }
   # Filter the iterator for the other terms of the pattern
