@@ -36,6 +36,7 @@ has 'local_graph_hashname' => (is => 'ro',
 										  default => 'local-graph-name');
 
 
+# Implement store-specific methods:
 
 sub uri_to_filename {
   my ($self, $uri) = @_;
@@ -72,14 +73,16 @@ sub filename_to_uri {
   return $graph;
 }
 
+# Implement QuadStore
+
 sub get_quads {
   my $self = shift;
   my ($s, $p, $o, $g) = @_;
   my $parser = Attean->get_parser('Turtle')->new();
   my $iter;
   if (blessed($g) && $g->does('Attean::API::IRI')) {
-	 open(my $fh, '<' . $self->uri_to_filename($g)) || die "Couldn't open file"; 
-	 $iter = $parser->parse_iter_from_io($fh, $self->local_base)->as_quad($g);
+	 my $fh = $self->uri_to_filename($g))->openr_utf8;
+	 $iter = $parser->parse_iter_from_io($fh, $g)->as_quad($g);
   } else {
 	 # TODO: OMG, we have to traverse all files...
   }
@@ -98,6 +101,8 @@ sub get_graphs {
   }
   return Attean::ListIterator->new( values => \@graphs, item_type => 'Attean::API::Term' );
 }
+
+# Implement CostPlanner
 
 sub cost_for_plan {
 	my $self	= shift;
