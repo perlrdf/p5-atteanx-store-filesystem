@@ -169,7 +169,7 @@ sub remove_quad {
 					 return ($t->subject->compare($quad->subject)
 								&& $t->predicate->compare($quad->predicate)
 								&& $t->object->compare($quad->object))
-				  });
+				  }); # TODO: Not sure what compare does
   $ser->serialize_iter_to_io($fh, $iter);
 }
 
@@ -177,8 +177,16 @@ sub create_graph {
   my ($self, $g) = @_;
   $self->uri_to_filename($g)->touch;
 }
-  
 
+sub drop_graph {
+  my ($self, $g) = @_;
+  return $self->uri_to_filename($g)->remove;
+}
+ 
+sub clear_graph {
+  my ($self, $g) = @_;
+  $self->uri_to_filename($g)->spew('');
+}
 
 # Implement CostPlanner
 
