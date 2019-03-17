@@ -25,7 +25,9 @@ use warnings;
 use Test::More;
 use Test::Roo;
 
-with 'Test::Attean::QuadStore', 'Test::Attean::Store::Filesystem::Role::CreateStore';
+with 'Test::Attean::Store::Filesystem::Role::CreateStore',
+  'Test::Attean::QuadStore',
+  'Test::Attean::MutableQuadStore' ;
 run_me;
 
 done_testing;
