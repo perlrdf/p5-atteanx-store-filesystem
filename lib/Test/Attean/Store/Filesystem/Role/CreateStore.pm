@@ -15,11 +15,8 @@ sub create_store {
 	my %args = @_;
 	my $quads = $args{quads} // [];
 	my $local_dir = File::Temp->newdir();
-	my $nonlocal_dir = File::Temp->newdir();
 	my $store = Attean->get_store('Filesystem')->new(
-																	 local_base => 'http://localhost',
-																	 local_graph_dir => $local_dir->dirname,
-																	 nonlocal_graph_dir => $nonlocal_dir->dirname
+																	 graph_dir => $local_dir->dirname,
 																	);
 	return $store;
 }
