@@ -146,15 +146,16 @@ sub add_quad {
   my $self = shift;
   my $quad = shift;
   my $g = $quad->graph;
-  my $iter = Attean::IteratorSequence->new(item_type => 'Attean::API::Triple');
-  my $fh = $self->uri_to_filename($g)->openrw_utf8( { locked => 1 } );
   my $parser = Attean->get_parser('Turtle')->new();
   my $ser = Attean->get_serializer('Turtle')->new;
+  my $fh = $self->uri_to_filename($g)->openrw_utf8( { locked => 1 } );
+  my $iter = Attean::IteratorSequence->new(item_type => 'Attean::API::Triple');
   $iter->push($parser->parse_iter_from_io($fh));
   $iter->push(Attean::ListIterator->new(values => [$quad->as_triple],
 													 item_type => 'Attean::API::Triple'));
   $ser->serialize_iter_to_io($fh, $iter);
 }
+
 
 
 # Implement CostPlanner
