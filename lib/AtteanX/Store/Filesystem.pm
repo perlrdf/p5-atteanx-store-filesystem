@@ -221,17 +221,11 @@ sub mtime_for_quads {
 sub cost_for_plan {
 	my $self	= shift;
 	my $plan	= shift;
-	# TODO: could be improved with more filesystem checks
+	# TODO: Plenty of room for improvement
 	if ($plan->isa('Attean::Plan::Quad')) {
 	  my $cost = 1;
 	  if ($plan->graph->does('Attean::API::Variable')) {
-		 my $lstat = stat($self->local_graph_dir) || die "Couldn't find local graph dir in filesystem";
-		 my $links = $lstat->nlink;
-		 if ($self->has_nonlocal_graph_dir) {
-			my $nstat = stat($self->nonlocal_graph_dir) || die "Couldn't find nonlocal graph dir in filesystem";
-			$links += $nstat->nlink;
-		 }
-		 $cost *= $links * 10;
+		 $cost *= 100; # Very high cost traverse filesystem
 	  }
 	  return $cost;
 	}
