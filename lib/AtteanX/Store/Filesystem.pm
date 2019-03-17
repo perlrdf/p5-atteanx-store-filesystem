@@ -22,9 +22,12 @@ use AtteanX::Store::SimpleTripleStore;
 use Data::Dumper;
 use Carp;
 
-with 'Attean::API::QuadStore';
-with 'Attean::API::CostPlanner';
-with 'MooX::Log::Any';
+with 'Attean::API::QuadStore',
+  'Attean::API::MutableQuadStore',
+  'Attean::API::CostPlanner',
+  'Attean::API::ETagCacheableQuadStore',
+  'Attean::API::TimeCacheableQuadStore',
+  'MooX::Log::Any';
 
 has 'graph_dir' => (is => 'ro',
 						  required => 1,
@@ -187,6 +190,31 @@ sub clear_graph {
   my ($self, $g) = @_;
   $self->uri_to_filename($g)->spew('');
 }
+
+# Implement ETagCacheableQuadStore
+
+sub etag_value_for_quads {
+  my $self = shift;
+  my ($s, $p, $o, $g) = @_;
+  if (blessed($g) && $g->does('Attean::API::IRI')) {
+	 return $self->uri_to_filename($g)->digest("MD4");
+  } else {
+	 return undef; # TODO: Digest for entire filesystem
+  }
+}
+
+# Implement Attean::API::TimeCacheableQuadStore 
+
+sub mtime_for_quads {
+  my $self = shift;
+  my ($s, $p, $o, $g) = @_;
+  if (blessed($g) && $g->does('Attean::API::IRI')) {
+	 return $self->uri_to_filename($g)->stat->mtime
+  } else {
+	 return undef; # TODO: mtime for entire filesystem
+  }
+}
+
 
 # Implement CostPlanner
 
