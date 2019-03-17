@@ -173,6 +173,12 @@ sub remove_quad {
   $ser->serialize_iter_to_io($fh, $iter);
 }
 
+sub create_graph {
+  my ($self, $g) = @_;
+  $self->uri_to_filename($g)->touch;
+}
+  
+
 
 # Implement CostPlanner
 
