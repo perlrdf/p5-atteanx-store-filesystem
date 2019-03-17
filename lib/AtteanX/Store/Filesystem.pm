@@ -156,6 +156,22 @@ sub add_quad {
   $ser->serialize_iter_to_io($fh, $iter);
 }
 
+sub remove_quad {
+  my $self = shift;
+  my $quad = shift;
+  my $g = $quad->graph;
+  my $parser = Attean->get_parser('Turtle')->new();
+  my $ser = Attean->get_serializer('Turtle')->new;
+  my $fh = $self->uri_to_filename($g)->openrw_utf8( { locked => 1 } );
+  my $iter = $parser->parse_iter_from_io($fh);
+  $iter->grep(sub {
+					 my $t = shift;
+					 return ($t->subject->compare($quad->subject)
+								&& $t->predicate->compare($quad->predicate)
+								&& $t->object->compare($quad->object))
+				  });
+  $ser->serialize_iter_to_io($fh, $iter);
+}
 
 
 # Implement CostPlanner
