@@ -13,7 +13,7 @@ sub create_store {
 	my $self = shift;
 	my %args = @_;
 	my $quads = $args{quads} // [];
-	my $tmpdir = path('/tmp/test/')->absolute; #tempdir;
+	my $tmpdir = Path::Tiny->tempdir; #path('/tmp/test/')->absolute;
 	my $store = Attean->get_store('Filesystem')->new(
 																	 graph_dir => $tmpdir
 																	);
