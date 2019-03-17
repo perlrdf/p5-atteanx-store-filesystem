@@ -77,8 +77,21 @@ sub filename_to_uri {
 
 sub get_quads {
   my $self = shift;
-  my ($s, $p, $o, $g) = @_;
-  my $parser = Attean->get_parser('Turtle')->new();
+  my @nodes       = @_;
+  my %bound;
+  foreach my $pos (0 .. 3) {
+	 my $n = $nodes[ $pos ];
+	 if (blessed($n) and $n->does('Attean::API::Variable')) {
+		$n = undef;
+		$nodes[$pos] = undef;
+	 }
+	 if (blessed($n)) {
+		$bound{ $pos_names[$pos] } = $n;
+	 }
+  }
+
+  my $g = $nodes[3];
+  my $parser = Attean->get_parser('Turtle')->new(); # TODO: support other serializations in fs
   my $iter;
   if (blessed($g) && $g->does('Attean::API::IRI')) {
 	 my $fh = $self->uri_to_filename($g))->openr_utf8;
@@ -86,7 +99,17 @@ sub get_quads {
   } else {
 	 # TODO: OMG, we have to traverse all files...
   }
-  # TODO: Filter other terms
+  # Filter the iterator for the other terms of the pattern
+  return $iter->grep(sub {
+							  my $q   = shift;
+							  foreach my $key (keys %bound) {
+								 my $term = $q->$key();
+								 unless ($term->equals( $bound{$key} )) {
+									return 0;
+								 }
+							  }
+							  return 1;
+							});
 }
 
 sub get_graphs {
