@@ -93,12 +93,20 @@ sub get_quads {
 
   my $g = $nodes[3];
   my $parser = Attean->get_parser('Turtle')->new(); # TODO: support other serializations in fs
-  my $iter;
+  my $iter = Attean::IteratorSequence->new(item_type => 'Attean::API::Quad');
   if (blessed($g) && $g->does('Attean::API::IRI')) {
+	 # Graph is bound => single file
 	 my $fh = $self->uri_to_filename($g)->openr_utf8;
-	 $iter = $parser->parse_iter_from_io($fh, $g)->as_quad($g);
+	 $iter->push($parser->parse_iter_from_io($fh, $g)->as_quad($g));
   } else {
-	 # TODO: OMG, we have to traverse all files...
+	 # Graph is unbound => all files
+	 my $rule = Path::Iterator::Rule->new;
+	 $rule->file->name("*.ttl"); # TODO: support other serializations
+	 my $next = $rule->iter($self->graph_dir);
+	 while ( defined( my $file = $next->() ) ) {
+		my $this_graph = $self->filename_to_uri($file);
+		$iter->push($parser->parse_iter_from_io($file, $this_graph)->as_quad($this_graph));
+	 }
   }
   # Filter the iterator for the other terms of the pattern
   return $iter->grep(sub {
