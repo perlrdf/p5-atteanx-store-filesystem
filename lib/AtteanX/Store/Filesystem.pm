@@ -35,6 +35,7 @@ has 'local_graph_hashname' => (is => 'ro',
 										  isa => Str,
 										  default => 'local-graph-name');
 
+my @pos_names	= Attean::API::Quad->variables;
 
 # Implement store-specific methods:
 
@@ -94,7 +95,7 @@ sub get_quads {
   my $parser = Attean->get_parser('Turtle')->new(); # TODO: support other serializations in fs
   my $iter;
   if (blessed($g) && $g->does('Attean::API::IRI')) {
-	 my $fh = $self->uri_to_filename($g))->openr_utf8;
+	 my $fh = $self->uri_to_filename($g)->openr_utf8;
 	 $iter = $parser->parse_iter_from_io($fh, $g)->as_quad($g);
   } else {
 	 # TODO: OMG, we have to traverse all files...
