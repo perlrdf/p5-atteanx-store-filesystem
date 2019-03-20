@@ -39,8 +39,6 @@ has 'local_graph_hashname' => (is => 'ro',
 										  isa => Str,
 										  default => 'local-graph-name');
 
-my @pos_names	= Attean::API::Quad->variables;
-
 # Implement store-specific methods:
 
 sub uri_to_filename {
@@ -87,17 +85,6 @@ sub filename_to_uri {
 sub get_quads {
   my $self = shift;
   my @nodes       = @_;
-  my %bound;
-  foreach my $pos (0 .. 3) {
-	 my $n = $nodes[ $pos ];
-	 if (blessed($n) and $n->does('Attean::API::Variable')) {
-		$n = undef;
-		$nodes[$pos] = undef;
-	 }
-	 if (blessed($n)) {
-		$bound{ $pos_names[$pos] } = $n;
-	 }
-  }
 
   my $g = $nodes[3];
   my $parser = Attean->get_parser('Turtle')->new(); # TODO: support other serializations in fs
@@ -118,16 +105,7 @@ sub get_quads {
 	 }
   }
   # Filter the iterator for the other terms of the pattern
-  return $iter->grep(sub {
-							  my $q   = shift;
-							  foreach my $key (keys %bound) {
-								 my $term = $q->$key();
-								 unless ($term->equals( $bound{$key} )) {
-									return 0;
-								 }
-							  }
-							  return 1;
-							});
+  return $iter->matching_pattern(@nodes);
 }
 
 sub get_graphs {
@@ -169,10 +147,10 @@ sub remove_quad {
   my $iter = $parser->parse_iter_from_io($fh);
   $iter->grep(sub {
 					 my $t = shift;
-					 return ($t->subject->compare($quad->subject)
-								&& $t->predicate->compare($quad->predicate)
-								&& $t->object->compare($quad->object))
-				  }); # TODO: Not sure what compare does
+					 return (! ($t->subject->equals($quad->subject)
+								&& $t->predicate->equals($quad->predicate)
+								&& $t->object->equals($quad->object)))
+				  });
   $ser->serialize_iter_to_io($fh, $iter);
 }
 
