@@ -134,7 +134,7 @@ around 'count_quads_estimate' => sub {
 		return $self->$orig(@triple,$graph);
 	 }
   }
-  return scalar $self->uri_to_filename($graph)->lines;
+  return scalar $self->uri_to_filename($graph)->lines; # TODO: Improve by removing comments, etc.
 };
   
 # Implement MutableQuadStore
