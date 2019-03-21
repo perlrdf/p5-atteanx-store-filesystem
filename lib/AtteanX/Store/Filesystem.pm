@@ -121,6 +121,22 @@ sub get_graphs {
   return Attean::ListIterator->new( values => \@graphs, item_type => 'Attean::API::Term' );
 }
 
+around 'count_quads_estimate' => sub {
+  my $orig = shift;
+  my $self = shift;
+  my $graph = pop;
+  my @triple = @_;
+  unless (defined($graph) && $graph->is_bound) {
+	 return $self->$orig(@triple,$graph);
+  }
+  foreach my $triple (@triple) {
+	 if (defined($triple) && $triple->is_bound) {
+		return $self->$orig(@triple,$graph);
+	 }
+  }
+  return scalar $self->uri_to_filename($graph)->lines;
+};
+  
 # Implement MutableQuadStore
 
 sub add_quad {
